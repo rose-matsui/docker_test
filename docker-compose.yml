@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:5.7
+    platform: linux/amd64  # プラットフォームを明示的に指定
+    container_name: my_mysql_container
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: test_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: pass
+      MYSQL_INITDB_SKIP_TZINFO: 1
+      MYSQL_FLAGS: "--innodb_force_recovery=3"
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  php:
+    build: .  # Dockerfile を使ってカスタムビルド
+    platform: linux/amd64  # プラットフォームを指定
+    volumes:
+      - ./www:/var/www/html
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    platform: linux/amd64  # こちらも同様にプラットフォームを指定
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:
